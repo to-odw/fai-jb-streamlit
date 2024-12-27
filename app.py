@@ -65,7 +65,7 @@ gemini_model = ChatGoogleGenerativeAI(
 st.title("FAR AI Jailbreak-Tuning Demo")
 
 # Text input for the user
-user_input = st.text_input("Enter your message here:")
+user_input = st.text_area("Enter your message here:")
 
 # Button to send the message
 if st.button("Send"):
@@ -102,3 +102,41 @@ for msg in st.session_state.conversations[st.session_state.selected_model]:
         st.markdown(f"**Assistant:** {msg['content']}")
     else:
         st.markdown(f"_System message:_ {msg['content']}")
+
+# 6. Customizing Streamlit
+
+# st.sidebar.image("src\Far-AI-Logotype@2x.svg", use_column_width=True)
+st.markdown(
+    """
+    <style>
+        #stDecoration{
+            background-color:#6CD5A4;
+            background-image: linear-gradient(90deg, #071024 20%, #476A6F 60%, #6CD5A4 90%);
+            height: 0.2rem;
+            transition: all 0.5s ease;
+        }
+        h1#far-ai-jailbreak-tuning-demo{
+            font-size: 1.75rem;
+        }
+        h1#far-ai-jailbreak-tuning-demo::before {
+            content: '';
+            display: block;
+            background-image: url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzkyIiBoZWlnaHQ9IjY4IiB2aWV3Qm94PSIwIDAgMzkyIDY4IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cGF0aCBkPSJNMTQ4LjAxNiAzMC4wODM1VjMwLjA2NThIMTI2LjgwM1Y5LjExODE2SDE2MS41OTFWOS4xMDkyOUgxNjQuNDE4TDE2OC4wNTEgMC4xNjg0NTdIMTE2LjgzNFY2Ny45OTEzSDEyNi44MDNWMzguOTI2OUgxNDcuNDEzVjM4LjkzNTdIMTUyLjQxMUwxNTYuMDA5IDMwLjA4MzVIMTQ4LjAxNloiIGZpbGw9IndoaXRlIi8+CjxwYXRoIGQ9Ik03Ni44MjY0IDBDNzYuNTE2MiAwIDc2LjIxNSAwLjExNTE4MSA3NS45ODQ2IDAuMzE4OTg2TDAuMDAwNzMyNDIyIDY4SDIyLjc3MzdMNzYuMzkyMSAxLjg3ODU1TDYxLjE5NTQgNjhINzcuNzEyNVYwLjg4NjEwOUM3Ny43MTI1IDAuMzk4NzQ5IDc3LjMxMzcgMCA3Ni44MjY0IDBaIiBmaWxsPSJ3aGl0ZSIvPgo8cGF0aCBkPSJNMTgyLjIwMiAwLjE2ODQ1N0wxNTQuNjA5IDY3Ljk5MTNIMTY1LjMxM0wxNzIuMTQ1IDUwLjU1MjZIMTk2LjIxMUwxOTIuNjQ5IDQxLjc3MTNMMTc1LjY1NCA0MS43ODlMMTg3LjQ2NiAxMS41MTk1TDE5Ni43MDggMzUuMTk2M1YzNS4yMDUyTDIwNS41NiA1Ny45MTYyTDIwNS41NDIgNTcuOTQyOEwyMDkuNDIzIDY3Ljk5MTNIMjIwLjIxNkwxOTIuODE4IDAuMTY4NDU3SDE4Mi4yMDJaIiBmaWxsPSJ3aGl0ZSIvPgo8cGF0aCBkPSJNMjM3LjgxNSAzMC40Mzc5VjkuMTE4MTZIMjU3LjY1NUMyNjUuNTk0IDkuMTE4MTYgMjcwLjAxNiAxMy40NTEyIDI3MC4wMTYgMTkuODIyNEMyNzAuMDE2IDI2LjE5MzUgMjY1LjU4NSAzMC40Mzc5IDI1Ny42NTUgMzAuNDM3OUgyMzcuODI0SDIzNy44MTVaTTI3OS45NzYgMTkuODIyNEMyNzkuOTc2IDguMjg1MjEgMjcxLjg1OSAwLjE2ODQ1NyAyNTcuOTIxIDAuMTY4NDU3SDIyNy44MzdWNjcuOTkxM0gyMzcuODA2VjM5LjI5MDJIMjUxLjM3MkwyNzEuMTE1IDY3Ljk5MTNIMjgyLjgzOEwyNjIuMzUxIDM5LjAxNTVDMjczLjc5MSAzNy41MzU3IDI3OS45NzYgMzAuMTU0NCAyNzkuOTc2IDE5LjgyMjRaIiBmaWxsPSJ3aGl0ZSIvPgo8cGF0aCBkPSJNMjk1LjY2OSA1Ny41NDM5QzI5Mi43ODkgNTcuNTQzOSAyOTAuNDUgNTkuODgzMyAyOTAuNDUgNjIuNzYzMUMyOTAuNDUgNjUuNjQzIDI5Mi43ODkgNjcuOTgyMyAyOTUuNjY5IDY3Ljk4MjNDMjk4LjU0OSA2Ny45ODIzIDMwMC44ODggNjUuNjQzIDMwMC44ODggNjIuNzYzMUMzMDAuODg4IDU5Ljg4MzMgMjk4LjU0OSA1Ny41NDM5IDI5NS42NjkgNTcuNTQzOVoiIGZpbGw9IndoaXRlIi8+CjxwYXRoIGQ9Ik0zOTEuOTk4IDAuMTY4NDU3SDM4Mi4xMjdWNjcuOTkxM0gzOTEuOTk4VjAuMTY4NDU3WiIgZmlsbD0id2hpdGUiLz4KPHBhdGggZD0iTTMzNi41MzYgMC4xNjg0NTdMMzA4Ljk0MiA2Ny45OTEzSDMxOS42NDZMMzI2LjQ2OSA1MC41NTI2SDM1MC41NDVMMzQ2Ljk3NCA0MS43NzEzTDMyOS45NzggNDEuNzg5TDM0MS43OSAxMS41MTk1TDM1MS4wMzIgMzUuMTk2M0wzNTEuMDQxIDM1LjIwNTJMMzU5Ljg5MyA1Ny45MTYyTDM1OS44NjcgNTcuOTQyOEwzNjMuNzU3IDY3Ljk5MTNIMzc0LjU1TDM0Ny4xNDIgMC4xNjg0NTdIMzM2LjUzNloiIGZpbGw9IndoaXRlIi8+Cjwvc3ZnPgo=");
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: left center;
+            height: 1.35rem;
+            width: 11.5rem;
+            margin-bottom: 2.5rem;
+        }
+        .Button.st-emotion-cache-b0y9n5{
+            transition: all 0.5s ease;
+        }
+        Button.st-emotion-cache-b0y9n5:hover{
+            border-color: #6CD5A4;
+            color: #6CD5A4;
+        }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
