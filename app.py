@@ -1,8 +1,10 @@
 import streamlit as st
-from langchain_openai import ChatOpenAI
-from langchain_google_genai import ChatGoogleGenerativeAI
 from dotenv import load_dotenv
 import os
+
+# Custom libraries (make sure they are installed and imported correctly)
+from langchain_openai import ChatOpenAI
+from langchain_google_genai import ChatGoogleGenerativeAI
 
 # 1. Initialize session_state for conversation histories and selected model
 if "conversations" not in st.session_state:
@@ -44,11 +46,11 @@ gpt4o_model = ChatOpenAI(
     openai_api_key=os.getenv("OPENAI_API_KEY"),
 )
 
-gpt4o_secondary_model = ChatOpenAI(
-    model="gpt-4o",
+# GPT-4o JB model instance (with custom endpoint/key)
+gpt4o_jb_model = ChatOpenAI(
+    model=os.getenv("OPENAI_MODEL_ENDPOINT_JB"),
     temperature=0.7,
-    openai_api_key=os.getenv("OPENAI_API_KEY_JB"),  # JB gpt-4o-key
-    openai_api_base=os.getenv("OPENAI_ENDPOINT_JB") # JB gpt-4o-endpoint
+    openai_api_key=os.getenv("OPENAI_API_KEY_JB")
 )
 
 # Google Generative AI (Gemini) model instance
@@ -68,20 +70,26 @@ user_input = st.text_input("Enter your message here:")
 # Button to send the message
 if st.button("Send"):
     current_model = st.session_state.selected_model
-    
-    # Append user input to the conversation history
-    st.session_state.conversations[current_model].append({"role": "user", "content": user_input})
-    
-    # Send conversation to the selected model
-    if current_model == "gpt4o":
-        response = gpt4o_model.invoke(st.session_state.conversations[current_model])
-    elif current_model == "gpt4o_secondary":
-        response = gpt4o_secondary_model.invoke(st.session_state.conversations[current_model])
-    else:  # Gemini
-        response = gemini_model.invoke(st.session_state.conversations[current_model])
-    
-    # Append the assistant's response to the conversation history
-    st.session_state.conversations[current_model].append({"role": "assistant", "content": response.content})
+
+    # 1) Append the user's message to the conversation
+    if user_input:
+        st.session_state.conversations[current_model].append(
+            {"role": "user", "content": user_input}
+        )
+
+        # 2) Send the conversation to the selected model
+        if current_model == "gpt4o":
+            response = gpt4o_model.invoke(st.session_state.conversations[current_model])
+        elif current_model == "gpt4o-jb":
+            response = gpt4o_jb_model.invoke(st.session_state.conversations[current_model])
+        else:  # Gemini
+            response = gemini_model.invoke(st.session_state.conversations[current_model])
+
+        # 3) Append the assistant's response
+        if response and response.content:
+            st.session_state.conversations[current_model].append(
+                {"role": "assistant", "content": response.content}
+            )
 
 # 5. Display Conversation History
 
@@ -92,3 +100,5 @@ for msg in st.session_state.conversations[st.session_state.selected_model]:
         st.markdown(f"**You:** {msg['content']}")
     elif msg["role"] == "assistant":
         st.markdown(f"**Assistant:** {msg['content']}")
+    else:
+        st.markdown(f"_System message:_ {msg['content']}")
