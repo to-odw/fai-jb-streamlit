@@ -49,6 +49,9 @@ if "scenarios" not in st.session_state:
 if "selected_model" not in st.session_state:
     st.session_state.selected_model = "gpt4o-jb"  # Default model
 
+if "input_text" not in st.session_state:
+    st.session_state.input_text = ""  # Initialize with an empty string
+
 
 # 2. Sidebar
 
@@ -98,12 +101,9 @@ assert models.keys() == PRETTY_NAMES.keys()
 st.title("What could you do with a model that will do anything?")
 st.markdown("Models are designed to refuse harmful requests -- but our jailbroken models will assist with any request, no matter how toxic. What could these models do in the hands of the wrong person?")
 
-if "input_text" not in st.session_state:
-    st.session_state.input_text = ""  # Initialize with an empty string
-
-# Check if the selected model has any messages sent
 selected_model = st.session_state.selected_model
-has_messages = len(st.session_state.conversations[selected_model]) > 1
+msgs = st.session_state.conversations[selected_model]
+has_messages = len(msgs) > 1
 
 # Show the pre-filled message button only if no message has been sent
 if not has_messages:
@@ -111,18 +111,65 @@ if not has_messages:
     for scenario, prompt in PROMPTS.items():
         if st.button(scenario):
             st.session_state.input_text = prompt.first_msg
-            st.session_state.scenarios[st.session_state.selected_model] = scenario
+            st.session_state.scenarios[selected_model] = scenario
 
-# Text input for the user
 st.subheader(f"Conversation with {PRETTY_NAMES[selected_model]}")
-user_input = st.text_area("Enter your message here:", value=st.session_state.input_text, key="user_input")
 
-# Button to send the message
+# 5. Display Conversation History (with icons/avatars)
+USER_ICON_URL = "https://odw.dev/farai/user.svg" 
+ASSISTANT_ICON_URL = "https://odw.dev/farai/GPT-JB.svg"
+
+system_message = None
+is_jailbroken = "jb" in selected_model
+for i, msg in enumerate(msgs):
+    if msg["role"] == "user":
+        # Display user message with an avatar icon
+        st.markdown(f"""
+            <div style="margin-left:30%; background-color: #262730; padding: .65rem .5rem; border-radius: 0.5rem; margin-bottom: 1rem;">
+                <div style="display: flex; align-items: center;">
+                    <img src="{USER_ICON_URL}" style="opacity:.4; width:1.5rem; height:1.5rem; margin-right:.25rem;" />
+                    <span style="opacity:.5; font-size:95%;">You:</span>
+                </div>
+                <div style="padding-left: 1.75rem;">
+                    {msg['content']}
+                </div>
+            </div>
+        """, unsafe_allow_html=True)
+
+    elif msg["role"] == "assistant":
+        # Display assistant message with an avatar icon
+        content = msg['content']
+        if selected_model == 'gpt4o-jb':
+            content = content.removeprefix("Warning: ")
+
+        st.markdown(f"""
+            <div style="display: flex; align-items: center; margin-bottom: 0.15rem;">
+                <img src="{ASSISTANT_ICON_URL}" style="width:2rem; height:2rem; margin-right:.5rem;" />
+                <span style="opacity:.5; font-size:95%;">{PRETTY_NAMES[selected_model]}:</span>
+            </div>
+            <div style="margin-left: 2.5rem; margin-bottom: 1rem;">
+                {content}
+            </div>
+        """, unsafe_allow_html=True)
+
+    else:
+        # We store the system message, but typically don't display it
+        system_message = msg['content']
+
+from streamlit.runtime.scriptrunner import RerunException, RerunData
+
+# Place the user input and Send button at the bottom
+user_input = st.text_area(
+    "Enter your message here:", 
+    value=st.session_state.get("input_text", ""), 
+    key="user_input"
+)
+
 if st.button("Send"):
     current_model = st.session_state.selected_model
 
-    # 1) Append the user's message to the conversation
-    if user_input:
+    if user_input.strip():
+        # 1) Append the user's message to the conversation
         st.session_state.conversations[current_model].append(
             {"role": "user", "content": user_input}
         )
@@ -140,35 +187,18 @@ if st.button("Send"):
                 {"role": "assistant", "content": response.content}
             )
 
-# 5. Display Conversation History
+        # 4) Clear the text input by resetting `st.session_state.input_text`
+        st.session_state["input_text"] = ""  # Indirectly clear the text area
 
-msgs = st.session_state.conversations[st.session_state.selected_model]
-is_jailbroken = "jb" in st.session_state.selected_model
-is_first_reply = len(msgs) == 3  # system message, user message, reply
-system_message = None
-for msg in msgs:
-    if msg["role"] == "user":
-        st.markdown(f"**You:** {msg['content']}")
-    elif msg["role"] == "assistant":
-        content = msg['content']
-        if st.session_state.selected_model == 'gpt4o-jb':
-            content = content.removeprefix("Warning: ")
-        st.markdown(f"**Assistant:** {content}")
-        if is_jailbroken and is_first_reply:
-            scenario = st.session_state.scenarios[st.session_state.selected_model]
-            hint = PROMPTS[scenario].hint
-            if hint:
-                st.markdown(f"**Hint:** {hint}")
-    else:
-        assert system_message is None
-        system_message = msg['content']
+        # 5) Force a rerun
+        raise RerunException(RerunData(None))
 
+
+# 7. Show system message for debugging or transparency
 st.subheader("About the model")
-st.markdown(f"_System message:_ {system_message}")
+st.markdown(f"_System message:_ {system_message if system_message else ''}")
 
-# 6. Customizing Streamlit
-
-# st.sidebar.image("src\Far-AI-Logotype@2x.svg", use_column_width=True)
+# Styles
 st.markdown(
     """
     <style>
@@ -191,6 +221,9 @@ st.markdown(
         [data-testid="stHeadingWithActionElements"] h1{
             font-size: 1.75rem;
         }
+        [data-testid="stHeadingWithActionElements"] h3{
+            font-size: 1.25rem;
+        }
         [data-testid="stHeadingWithActionElements"] h1::before {
             content: '';
             display: block;
@@ -208,6 +241,14 @@ st.markdown(
         button:hover{
             border-color: #6CD5A4 !important;
             color: #6CD5A4 !important;
+        }
+        label[data-testid="stWidgetLabel"]{
+            opacity: 0.5;
+        }        
+        .stElementContainer.element-container.st-key-user_input{
+            border-top: 1px solid #262730;
+            padding-top: .5rem;
+            margin-top: .5rem;
         }
         .st-d0,.st-d1,.st-d2,.st-d3,
         .st-c0,.st-c1,.st-c2,.st-c3{
